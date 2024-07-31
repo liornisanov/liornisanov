@@ -1,0 +1,157 @@
+body {
+    height: 100vh; /* קובע שהגובה של ה-html וה-body יהיו 100% מגובה החלון */
+    margin: 0; /* מבטל את ברירת המחדל של המרווחים */
+    padding: 0; /* מבטל את ברירת המחדל של הריפודים */
+}
+
+body {
+    background-size: cover; /* קובע שהרקע יתפוס את כל השטח ויכסה את כל האזור */
+    overflow: hidden; /* מסתיר את פסי הגלילה */
+    position: relative; /* קובע מיקום יחסי לתג body */
+    background-image: url('נננ.jpg'); /* תמונת רקע לרמה 1 */
+}
+#b1{
+position: absolute;
+right: 0;
+top: -5px;
+width: 80px;
+height: 50px;
+color: chocolate;
+background-color: rgba(199, 0, 0, 0.726);
+}
+#b2{
+position: absolute;
+left: 0;
+top: -5px;
+width: 80px;
+height:50px;
+color: chocolate;
+background-color: rgba(0, 199, 27, 0.726);
+}
+#obstacle {
+    width: 100px; /* רוחב המכשול */
+    height: 100px; /* גובה המכשול */
+    position: absolute; /* קובע מיקום אבסולוטי למכשול */
+    animation-name: moveObstacle; /* שם האנימציה */
+    animation-duration:4s; /* משך האנימציה */
+    animation-iteration-count: infinite; /* מספר הפעמים שהאנימציה תחזור על עצמה */
+    animation-timing-function: linear; /* קצב קבוע של האנימציה */
+}
+
+@keyframes moveObstacle {
+    from {
+        transform: translate(0, 0); /* המיקום ההתחלתי */
+    }
+    to {
+        transform: translate(100vw, 100vh); /* המיקום הסופי */
+    }
+}
+
+
+
+
+#player {
+    width: 220px; /* רוחב השחקן */
+    height: 200px; /* גובה השחקן */
+    position: absolute; /* קובע שהמיקום של השחקן יהיה אבסולוטי */
+    left: 0; /* השחקן יתחיל מהשמאל */
+    bottom: 50px; /* קובע שהשחקן יהיה 100px מהרצפה */
+}
+
+#scoreId {
+    color: rgb(251, 255, 0); /* קובע את צבע הכיתוב של הניקוד לאדום */
+    position: absolute; /* קובע מיקום אבסולוטי לניקוד */
+    top:25px; /* הניקוד יהיה 10px מלמעלה */
+    left: 1px; /* הניקוד יהיה 10px משמאל */
+}
+
+#enemy {
+    width: 300px; /* רוחב האויב */
+    height: 300px; /* גובה האויב */
+    position: absolute; /* קובע מיקום אבסולוטי לאויב */
+    right: 0; /* האויב יתחיל מהימין */
+    bottom:30px; /* קובע שהאויב יהיה 100px מהרצפה */
+    animation-name: drive; /* שם האנימציה שהאויב ישתמש בה */
+    animation-duration: 1.5s; /* משך האנימציה */
+    animation-iteration-count: infinite; /* מספר הפעמים שהאנימציה תחזור על עצמה */
+    animation-timing-function: linear; /* קצב קבוע של האנימציה */
+}
+
+#floor {
+    background-image: url(floor.png); /* תמונת הרקע של הרצפה */
+    width: 100%; /* רוחב הרצפה יהיה 100% מרוחב החלון */
+    height: 100px; /* גובה הרצפה */
+    position: absolute; /* קובע מיקום אבסולוטי לרצפה */
+    bottom: -20px; /* הרצפה תהיה 20px מתחת לשחקן */
+    left: 0; /* הרצפה תתחיל מהשמאל */
+}
+
+.jump {
+    animation-name: jumping; /* שם האנימציה של הקפיצה */
+    animation-duration: 1s; /* משך הקפיצה */
+    animation-timing-function: cubic-bezier(0.68, -0.55, 0.27, 1.55); /* פונקציה לקביעת תזמון הקפיצה */
+}
+
+@keyframes jumping {
+    0% { bottom: 50px; } /* תחילת הקפיצה: השחקן בגובה 100px */
+    50% { bottom: 500px; } /* אמצע הקפיצה: השחקן בגובה 500px */
+    100% { bottom: 50px; } /* סיום הקפיצה: השחקן חוזר לגובה 100px */
+}
+
+@keyframes drive {
+    0% { right: 0; transform: translateX(100%); } /* תחילת התנועה: האויב מימין */
+    100% { right: 100%; transform: translateX(-100%); } /* סיום התנועה: האויב משמאל */
+}
+
+/* סגנון למסך סיום המשחק */
+#gameOver {
+    display: none; /* המסך מוסתר ברירת מחדל */
+    position: fixed; /* מיקום קבוע */
+    top: 0; /* המסך יתחיל מלמעלה */
+    left: 0; /* המסך יתחיל משמאל */
+    width: 100%; /* המסך יתפוס 100% מרוחב החלון */
+    height: 100%; /* המסך יתפוס 100% מגובה החלון */
+    background:   rgba(33, 143, 0, 0.788); /* רקע חצי שקוף שחור */
+    color: rgb(229, 255, 0); /* צבע טקסט לבן */
+    text-align: center; /* יישור טקסט למרכז */
+    z-index: 10; /* קובע רמת ז-השלילה כך שהמסך יופיע מעל הכל */
+    padding-top: 20%; /* רווח עליון של 20% */
+}
+
+/* סגנונות רקע לרמות שונות */
+body.level-1 {
+    background-image: url('נננ.jpg'); /* תמונת רקע לרמה 1 */
+}
+
+body.level-2 {
+    background-image: url('background.png'); /* תמונת רקע לרמה 2 */
+}
+
+body.level-3 {
+    background-image: url('back1.jpg'); /* תמונת רקע לרמה 3 */
+}
+#levelId {
+    color: blue;
+    font-size: 18px;
+    position: absolute; /* קובע מיקום אבסולוטי */
+    left: 1px; /* קובע שהאלמנט יהיה 10px מהשמאל */
+    top:70px;
+}
+
+
+/* ניתן להוסיף עוד רמות לפי הצורך */
+/* סגנונות רצפה לרמות שונות */
+.floor-level-1 {
+    background-image: url('floor1.jpeg'); /* תמונת רצפה לרמה 1 */
+}
+
+.floor-level-2 {
+    background-image: url('floor2.png'); /* תמונת רצפה לרמה 2 */
+}
+
+.floor-level-3 {
+    background-image: url('floor3.png'); /* תמונת רצפה לרמה 3 */
+}
+
+
+

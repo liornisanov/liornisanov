@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"> <!-- קידוד הדף -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- התאמה למכשירים ניידים -->
+    <title>FlYByE</title> <!-- כותרת הדף -->
+    <link rel="stylesheet" href="game.css"> <!-- קישור לקובץ CSS -->
+</head>
+<body>
+    <button onclick="stopMusic()" id="b1"> stop music</button> <!-- כפתור להתחלת המשחק מחדש -->
+    <button onclick="playMusic()"id="b2"> play music</button> <!-- כפתור להתחלת המשחק מחדש -->
+>
+    <h1 id="scoreId">Score: 0</h1> <!-- stopתצוגת הניקוד -->
+    <h2 id="levelId">Level: 1</h2> <!-- תצוגת הרמה -->
+    <img src="player.png" alt="Player" id="player"> <!-- תמונת השחקן -->
+    <img src="enmy.png   " alt="Enemy" id="enemy"> <!-- תמונת האויב -->
+    <div id="floor" class="floor-level-"></div> <!-- תצוגת הרצפה -->
+
+    <div id="gameOver"> <!-- מסך סיום המשחק -->
+        <h1>GAME OVER</h1> <!-- כותרת המסך -->
+        <p>Your Score: <span id="finalScore"></span></p> <!-- תצוגת הניקוד הסופי -->
+        <p>High Score: <span id="highScore"></span></p> <!-- תצוגת הניקוד הגבוהה ביותר -->
+        <button onclick="restartGame()">Restart</button> <!-- כפתור להתחלת המשחק מחדש -->
+        <button onclick="stopMusic()">stop music</button> <!-- כפתור להתחלת המשחק מחדש -->
+
+    </div>
+
+    <script>
+
+        addEventListener('keydown', checkKey); // מאזין לאירועי לחיצת מקש
+let player = document.getElementById("player"); // בחירת השחקן
+let enemy = document.getElementById("enemy"); // בחירת האויב
+let scoreId = document.getElementById("scoreId"); // בחירת הניקוד
+let levelId = document.getElementById("levelId"); // בחירת הרמה
+let gameOverScreen = document.getElementById("gameOver"); // בחירת מסך סיום המשחק
+let finalScore = document.getElementById("finalScore"); // בחירת הניקוד הסופי
+let highScoreDisplay = document.getElementById("highScore"); // בחירת הניקוד הגבוהה ביותר
+let floor = document.getElementById("floor"); // בחירת הרצפה
+let score = 0; // משתנה לניקוד הנוכחי
+let isJumping = false; // משתנה לבדיקת מצב קפיצה
+let gameInterval; // משתנה ללולאת המשחק
+let levelUpSound = new Audio("levelUp.wav"); // צליל של עליית רמה
+let jumpSound = new Audio("jump.mp3"); // צליל של קפיצה
+let gameOverSound = new Audio("gameover.mp3"); // צליל של סיום המשחק
+let gameSound = new Audio("gameMusic.mp3"); // צליל של סיום המשחק
+gameSound.play();
+let playerX = 0; // משתנה למיקום אופקי של השחקן
+let obstacle = document.getElementById("obstacle");
+
+function getRandomInt(min, max) {
+    return Math.floor(Math.random() * (max - min)) + min;
+}
+
+function moveObstacleRandomly() {
+    let direction = getRandomInt(0, 3); // 0: from left, 1: from right, 2: from top, 3: from bottom
+    let obstacleX, obstacleY;
+
+    switch (direction) {
+        case 0: // from left
+            obstacleX = -100;
+            obstacleY = getRandomInt(0, window.innerHeight - obstacle.offsetHeight);
+            break;
+        case 1: // from right
+            obstacleX = window.innerWidth;
+            obstacleY = getRandomInt(0, window.innerHeight - obstacle.offsetHeight);
+            break;
+        case 2: // from top
+            obstacleX = getRandomInt(0, window.innerWidth - obstacle.offsetWidth);
+            obstacleY = -100;
+            break;
+        case 3: // from bottom
+            obstacleX = getRandomInt(0, window.innerWidth - obstacle.offsetWidth);
+            obstacleY = window.innerHeight;
+            break;
+    }
+
+    obstacle.style.left = `${obstacleX}px`;
+    obstacle.style.top = `${obstacleY}px`;
+
+    obstacle.style.animation = 'none';
+    setTimeout(() => {
+        obstacle.style.animation = '';
+    }, 10); // Restart animation
+}
+
+setInterval(moveObstacleRandomly, 3000); // Change position every 3 seconds
+function checkCollision() {
+    let playerRect = player.getBoundingClientRect();
+    let enemyRect = enemy.getBoundingClientRect();
+    let obstacleRect = obstacle.getBoundingClientRect();
+
+    if (
+        (playerRect.right > enemyRect.left &&
+        playerRect.left < enemyRect.right &&
+        playerRect.bottom > enemyRect.top &&
+        playerRect.top < enemyRect.bottom) ||
+        (playerRect.right > obstacleRect.left &&
+        playerRect.left < obstacleRect.right &&
+        playerRect.bottom > obstacleRect.top &&
+        playerRect.top < obstacleRect.bottom)
+    ) {
+        gameOverSound.play();
+        gameOver();
+    }
+}
+
+
+
+const playerSpeed =35; // מהירות תנועה אופקית של השחקן
+function stopMusic(){
+    gameSound.pause()
+}
+function playMusic(){
+    gameSound.play()
+}
+function checkKey(event) {
+    if (event.key === ' ') {
+        jump(); // קריאה לפונקציית הקפיצה כאשר לוחצים על מקש רווח
+    } else if (event.key === 'ArrowRight') {
+        movePlayer('right');
+    } else if (event.key === 'ArrowLeft') {
+        movePlayer('left');
+    }
+}
+
+function movePlayer(direction) {
+    if (direction === 'right' && playerX + playerSpeed < window.innerWidth - player.offsetWidth) {
+        playerX += playerSpeed;
+    } else if (direction === 'left' && playerX - playerSpeed >= 0) {
+        playerX -= playerSpeed;
+    }
+    player.style.left = `${playerX}px`;
+}
+
+function jump() {
+    if (isJumping) {
+        return; // יציאה מהפונקציה אם כבר יש קפיצה
+    }
+    isJumping = true; // קביעת מצב קפיצה לאמת
+    jumpSound.play(); // הפעלת צליל הקפיצה
+    player.classList.add('jump'); // הוספת מחלקת הקפיצה לשחקן
+    setTimeout(removeAnimation, 1000); // הסרת האנימציה לאחר שנייה
+}
+
+function removeAnimation() {
+    player.classList.remove('jump'); // הסרת מחלקת הקפיצה מהשחקן
+    isJumping = false; // קביעת מצב קפיצה לשקר
+    score = score + 1; // הוספת נקודה לניקוד
+    scoreId.innerHTML = "Score: " + score; // עדכון הניקוד בתצוגה
+    if (score % 10 === 0) {
+        levelUp(); // קריאה לפונקציית עליית רמה כל 10 נקודות
+    }
+}
+
+function checkCollision() {
+    let playerRect = player.getBoundingClientRect(); // קבלת מיקום השחקן
+    let enemyRect = enemy.getBoundingClientRect(); // קבלת מיקום האויב
+
+    if (
+        playerRect.right > enemyRect.left && // בדיקת התנגשות צד ימין של השחקן עם צד שמאל של האויב
+        playerRect.left < enemyRect.right && // בדיקת התנגשות צד שמאל של השחקן עם צד ימין של האויב
+        playerRect.bottom > enemyRect.top && // בדיקת התנגשות צד תחתון של השחקן עם צד עליון של האויב
+        playerRect.top < enemyRect.bottom // בדיקת התנגשות צד עליון של השחקן עם צד תחתון של האויב
+    ) {
+        gameOverSound.play(); // הפעלת צליל סיום המשחק
+        gameOver(); // קריאה לפונקציית סיום המשחק
+    }
+}
+
+function levelUp() {
+    levelUpSound.play(); // הפעלת צליל עליית רמה
+    let level = Math.floor(score / 10) + 1; // חישוב הרמה הנוכחית
+    document.body.className = 'level-' + level; // שינוי מחלקת הגוף לרמה הנוכחית
+    floor.className = 'floor-level-' + level; // שינוי מחלקת הרצפה לרמה הנוכחית
+    levelId.innerHTML = "Level: " + level; // עדכון הרמה בתצוגה
+}
+
+function gameOver() {
+    clearInterval(gameInterval); // עצירת לולאת המשחק
+    enemy.style.animationPlayState = 'paused'; // עצירת האנימציה של האויב
+    finalScore.innerHTML = score; // הצגת הניקוד הסופי
+    let highScore = localStorage.getItem('highScore') || 0; // קבלת הניקוד הגבוהה ביותר מהאחסון המקומי
+    if (score > highScore) {
+        localStorage.setItem('highScore', score); // עדכון הניקוד הגבוהה ביותר אם הניקוד הנוכחי גבוה יותר
+        highScore = score; // עדכון הניקוד הגבוהה ביותר
+    }
+    highScoreDisplay.innerHTML = highScore; // הצגת הניקוד הגבוהה ביותר
+    gameOverScreen.style.display = 'block'; // הצגת מסך סיום המשחק
+}
+
+function restartGame() {
+    score = 0; // אתחול הניקוד
+    scoreId.innerHTML = "Score: " + score; // עדכון הניקוד בתצוגה
+    levelId.innerHTML = "Level: 1"; // אתחול הרמה בתצוגה לרמה 1
+    gameOverScreen.style.display = 'none'; // הסתרת מסך סיום המשחק
+    enemy.style.animationPlayState = 'running'; // הפעלת האנימציה של האויב מחדש
+    document.body.className = 'level-1'; // אתחול הרקע לרמה הראשונה
+    floor.className = 'floor-level-1'; // אתחול הרצפה לרמה הראשונה
+    gameInterval = setInterval(checkCollision, 100); // אתחול לולאת המשחק מחדש
+}
+
+// הפעלת לולאת המשחק
+gameInterval = setInterval(checkCollision, 100);
+
+
+        function jump() {
+            if (isJumping) {
+                return; // יציאה מהפונקציה אם כבר יש קפיצה
+            }
+            isJumping = true; // קביעת מצב קפיצה לאמת
+            jumpSound.play(); // הפעלת צליל הקפיצה
+            player.classList.add('jump'); // הוספת מחלקת הקפיצה לשחקן
+            setTimeout(removeAnimation, 1000); // הסרת האנימציה לאחר שנייה
+        }
+
+        function removeAnimation() {
+            player.classList.remove('jump'); // הסרת מחלקת הקפיצה מהשחקן
+            isJumping = false; // קביעת מצב קפיצה לשקר
+            score = score + 1; // הוספת נקודה לניקוד
+            scoreId.innerHTML = "Score: " + score; // עדכון הניקוד בתצוגה
+            if (score % 10 === 0) {
+                levelUp(); // קריאה לפונקציית עליית רמה כל 10 נקודות
+            }
+        }
+
+        function checkCollision() {
+            let playerRect = player.getBoundingClientRect(); // קבלת מיקום השחקן
+            let enemyRect = enemy.getBoundingClientRect(); // קבלת מיקום האויב
+
+            if (
+                playerRect.right > enemyRect.left && // בדיקת התנגשות צד ימין של השחקן עם צד שמאל של האויב
+                playerRect.left < enemyRect.right && // בדיקת התנגשות צד שמאל של השחקן עם צד ימין של האויב
+                playerRect.bottom > enemyRect.top && // בדיקת התנגשות צד תחתון של השחקן עם צד עליון של האויב
+                playerRect.top < enemyRect.bottom // בדיקת התנגשות צד עליון של השחקן עם צד תחתון של האויב
+            ) {
+                gameOverSound.play(); // הפעלת צליל סיום המשחק
+                gameOver(); // קריאה לפונקציית סיום המשחק
+            }
+        }
+
+        function levelUp() {
+            levelUpSound.play(); // הפעלת צליל עליית רמה
+            let level = Math.floor(score / 10) + 1; // חישוב הרמה הנוכחית
+            document.body.className = 'level-' + level; // שינוי מחלקת הגוף לרמה הנוכחית
+            floor.className = 'floor-level-' + level; // שינוי מחלקת הרצפה לרמה הנוכחית
+            levelId.innerHTML = "Level: " + level; // עדכון הרמה בתצוגה
+        }
+
+        function gameOver() {
+            clearInterval(gameInterval); // עצירת לולאת המשחק
+            enemy.style.animationPlayState = 'paused'; // עצירת האנימציה של האויב
+            finalScore.innerHTML = score; // הצגת הניקוד הסופי
+            let highScore = localStorage.getItem('highScore') || 0; // קבלת הניקוד הגבוהה ביותר מהאחסון המקומי
+            if (score > highScore) {
+                localStorage.setItem('highScore', score); // עדכון הניקוד הגבוהה ביותר אם הניקוד הנוכחי גבוה יותר
+                highScore = score; // עדכון הניקוד הגבוהה ביותר
+            }
+            highScoreDisplay.innerHTML = highScore; // הצגת הניקוד הגבוהה ביותר
+            gameOverScreen.style.display = 'block'; // הצגת מסך סיום המשחק
+        }
+
+        function restartGame() {
+            score = 0; // אתחול הניקוד
+            scoreId.innerHTML = "Score: " + score; // עדכון הניקוד בתצוגה
+            levelId.innerHTML = "Level: 1"; // אתחול הרמה בתצוגה לרמה 1
+            gameOverScreen.style.display = 'none'; // הסתרת מסך סיום המשחק
+            enemy.style.animationPlayState = 'running'; // הפעלת האנימציה של האויב מחדש
+            document.body.className = 'level-1'; // אתחול הרקע לרמה הראשונה
+            floor.className = 'floor-level-1'; // אתחול הרצפה לרמה הראשונה
+            gameInterval = setInterval(checkCollision, 100); // אתחול לולאת המשחק מחדש
+        }
+
+        // הפעלת לולאת המשחק
+        gameInterval = setInterval(checkCollision, 100);
+    </script>
+</body>
+</html>
+
